@@ -19,6 +19,45 @@ const TONES = [
   { id: "empathy", label: "Problem-Aware" },
 ];
 
+const AUDIENCES = [
+  {
+    id: "bm_dealer",
+    label: "B&M FFL Dealer",
+    value: "Brick-and-mortar FFL dealers running a physical gun store",
+    pain: "Competing with online retailers, low foot traffic, thin margins, wearing every hat",
+  },
+  {
+    id: "bm_500k_2m",
+    label: "Gun Store ($500K-$2M)",
+    value: "Established gun store owners doing $500K to $2M in annual revenue",
+    pain: "Plateaued growth, no marketing system, relying on word of mouth, staff issues",
+  },
+  {
+    id: "new_ffl",
+    label: "New FFL Holder",
+    value: "New FFL holders in their first 1-2 years of business",
+    pain: "Overwhelmed by compliance, no customer base yet, burning cash, no systems",
+  },
+  {
+    id: "kitchen_table",
+    label: "Kitchen Table FFL",
+    value: "Home-based kitchen table FFL dealers looking to grow or go brick-and-mortar",
+    pain: "Limited inventory, no storefront presence, struggling to scale beyond transfers",
+  },
+  {
+    id: "range_owner",
+    label: "Range / Training Facility",
+    value: "Indoor/outdoor range owners and firearms training facility operators",
+    pain: "Filling class seats, membership retention, seasonal swings, liability concerns",
+  },
+  {
+    id: "custom",
+    label: "✏️ Custom",
+    value: "",
+    pain: "",
+  },
+];
+
 const C = {
   accent: "#00baff",
   accentDim: "rgba(0,186,255,0.12)",
@@ -37,8 +76,10 @@ const C = {
 };
 
 function buildPrompt(inputs) {
-  const { audience, offer, topic, number, tone, offerType } = inputs;
+  const { audience, audiencePreset, offer, topic, number, tone, offerType } = inputs;
   const toneLabel = TONES.find((t) => t.id === tone)?.label || tone;
+  const preset = AUDIENCES.find((a) => a.id === audiencePreset);
+  const painContext = preset && preset.pain ? "\n- Key Pain Points: " + preset.pain : "";
 
   let typeInst = "";
   switch (offerType) {
@@ -79,6 +120,7 @@ function buildPrompt(inputs) {
     (number || "Your best judgment") +
     "\n- Tone: " +
     toneLabel +
+    painContext +
     "\n\n" +
     typeInst
   );
@@ -184,7 +226,8 @@ function RenderMarkdown({ text }) {
 
 export default function FFLOfferGenerator() {
   const [inputs, setInputs] = useState({
-    audience: "B&M FFL Dealers",
+    audience: "Brick-and-mortar FFL dealers running a physical gun store",
+    audiencePreset: "bm_dealer",
     offer: "",
     topic: "",
     number: "",
@@ -246,7 +289,6 @@ export default function FFLOfferGenerator() {
   };
 
   const fields = [
-    { key: "audience", label: "Target Audience", ph: "e.g. B&M FFL Dealers, Gun Store Owners" },
     { key: "offer", label: "Your Offer / Lead Magnet *", ph: "e.g. Free checklist, Revenue diagnostic, Free training" },
     { key: "topic", label: "Topic / Core Hook *", ph: "e.g. Getting to top of Google, Doubling walk-in traffic" },
     { key: "number", label: "Number / Specificity", ph: "e.g. 5 hacks, 3 mistakes (optional)" },
@@ -391,6 +433,105 @@ export default function FFLOfferGenerator() {
                 </button>
               ))}
             </div>
+
+            {/* Audience Presets */}
+            <div
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                color: C.textMuted,
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                marginBottom: "0.55rem",
+              }}
+            >
+              Who are you targeting?
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))",
+                gap: "0.45rem",
+                marginBottom: "0.75rem",
+              }}
+            >
+              {AUDIENCES.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => {
+                    update("audiencePreset", a.id);
+                    if (a.id !== "custom") {
+                      update("audience", a.value);
+                    } else {
+                      update("audience", "");
+                    }
+                  }}
+                  style={{
+                    padding: "0.6rem 0.6rem",
+                    background: inputs.audiencePreset === a.id ? C.accentDim : "rgba(255,255,255,0.015)",
+                    border: `1px solid ${inputs.audiencePreset === a.id ? C.accentBorder : C.panelBorder}`,
+                    borderRadius: 9,
+                    color: inputs.audiencePreset === a.id ? C.accent : C.textMuted,
+                    cursor: "pointer",
+                    fontSize: "0.84rem",
+                    fontWeight: 600,
+                    textAlign: "left",
+                    fontFamily: "'DM Sans', sans-serif",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+            {inputs.audiencePreset !== "custom" && inputs.audiencePreset && (
+              <div
+                style={{
+                  fontSize: "0.8rem",
+                  color: C.textDim,
+                  marginBottom: "1.25rem",
+                  padding: "0.5rem 0.75rem",
+                  background: "rgba(0,186,255,0.04)",
+                  borderRadius: 7,
+                  border: `1px solid rgba(0,186,255,0.08)`,
+                  lineHeight: 1.5,
+                }}
+              >
+                <span style={{ color: C.accent, fontWeight: 600 }}>Targeting:</span>{" "}
+                <span style={{ color: C.text }}>{inputs.audience}</span>
+                {AUDIENCES.find((a) => a.id === inputs.audiencePreset)?.pain && (
+                  <>
+                    <br />
+                    <span style={{ color: C.accent, fontWeight: 600 }}>Pain points:</span>{" "}
+                    <span style={{ color: C.text }}>
+                      {AUDIENCES.find((a) => a.id === inputs.audiencePreset).pain}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+            {inputs.audiencePreset === "custom" && (
+              <div style={{ marginBottom: "1.25rem" }}>
+                <input
+                  type="text"
+                  value={inputs.audience}
+                  onChange={(e) => update("audience", e.target.value)}
+                  placeholder="Describe your target audience..."
+                  style={{
+                    width: "100%",
+                    padding: "0.8rem 1rem",
+                    background: C.inputBg,
+                    border: `1px solid ${C.inputBorder}`,
+                    borderRadius: 9,
+                    color: C.textBright,
+                    fontSize: "0.95rem",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                />
+              </div>
+            )}
 
             {fields.map((f) => (
               <div key={f.key} style={{ marginBottom: "1.1rem" }}>
