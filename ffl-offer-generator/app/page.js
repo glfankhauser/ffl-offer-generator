@@ -5,6 +5,7 @@ import { useState } from "react";
 const TYPES = [
   { id: "headlines", label: "Headlines & Hooks", icon: "🎯" },
   { id: "facebook_ad", label: "Facebook Ad", icon: "📱" },
+  { id: "facebook_post", label: "Facebook Post", icon: "📣" },
   { id: "email", label: "Email Sequence", icon: "✉️" },
   { id: "landing_page", label: "Landing Page", icon: "🖥️" },
   { id: "full_suite", label: "Full Suite", icon: "⚡" },
@@ -49,6 +50,10 @@ function buildPrompt(inputs) {
       typeInst =
         "Generate 3 complete Facebook ad variations. For EACH ad:\n- Hook (first 1-2 scroll-stopping lines)\n- Body (3-5 paragraphs, PAS or AIDA)\n- CTA\n- Headline (ad headline field)\n- Link Description";
       break;
+    case "facebook_post":
+      typeInst =
+        "Generate 5 organic Facebook post variations designed to drive engagement and leads. For EACH post:\n- Opening hook (pattern interrupt first line)\n- Body copy (conversational, value-driven, 3-8 sentences)\n- Call to action (comment, DM, or link click)\n- Suggested post type (text only, image suggestion, or video idea)\n\nMix up the formats: include a story-based post, a question post, a controversial/hot take post, a value bomb/tips post, and a social proof/results post. Write them as ready-to-copy-paste posts, not as ads.";
+      break;
     case "email":
       typeInst =
         "Generate a 3-email nurture sequence:\nEmail 1 (send immediately): 3 subject lines, preview text, body, CTA\nEmail 2 (day 2): 3 subject lines, preview text, body, CTA\nEmail 3 (day 3-4): 3 subject lines, preview text, body, CTA";
@@ -64,7 +69,7 @@ function buildPrompt(inputs) {
   }
 
   return (
-    "You are a world-class direct response copywriter for the firearms retail industry (brick-and-mortar FFL dealers / gun store owners). Style: Dan Kennedy, Gary Halbert, Frank Kern. Punchy, benefit-driven, curiosity-inducing. Use AIDA, PAS frameworks. Power words: Free, Proven, Little-Known, Underground, Blueprint, Playbook. Direct no-BS tone. Address them as peers. Use markdown formatting.\n\nCRITICAL FORMATTING RULE: NEVER use em dashes or en dashes in your output. No instances of the characters -- or the unicode em dash or en dash. Use commas, periods, colons, or ellipses instead.\n\nOFFER PARAMETERS:\n- Audience: " +
+    "You are a world-class direct response copywriter for the firearms retail industry (brick-and-mortar FFL dealers / gun store owners). Style: Dan Kennedy, Gary Halbert, Frank Kern. Punchy, benefit-driven, curiosity-inducing. Use AIDA, PAS frameworks. Power words: Free, Proven, Little-Known, Underground, Blueprint, Playbook. Direct no-BS tone. Address them as peers. Use markdown formatting.\n\nCRITICAL FORMATTING RULE: NEVER use em dashes or en dashes in your output. No instances of the characters -- or the unicode em dash or en dash. Use commas, periods, colons, or ellipses instead. Use markdown headers (# and ##) for section titles instead of wrapping text in asterisks. Keep formatting clean and minimal.\n\nOFFER PARAMETERS:\n- Audience: " +
     audience +
     "\n- Offer: " +
     offer +
@@ -81,11 +86,18 @@ function buildPrompt(inputs) {
 
 function RenderMarkdown({ text }) {
   if (!text) return null;
-  const lines = text.split("\n");
+  // Strip all remaining asterisks that aren't part of valid bold pairs
+  const cleanText = text.replace(/\*\*([^*]+)\*\*/g, '%%BOLD%%$1%%ENDBOLD%%')
+    .replace(/\*/g, '')
+    .replace(/%%BOLD%%/g, '**')
+    .replace(/%%ENDBOLD%%/g, '**');
+  const lines = cleanText.split("\n");
   return (
     <>
       {lines.map((line, i) => {
-        if (line.startsWith("### "))
+        // Strip leading markdown bold from headers
+        const cleanLine = line.replace(/^\*\*(.+)\*\*$/, '$1');
+        if (cleanLine.startsWith("### "))
           return (
             <h3
               key={i}
@@ -96,10 +108,10 @@ function RenderMarkdown({ text }) {
                 margin: "1.1rem 0 0.35rem",
               }}
             >
-              {line.slice(4)}
+              {cleanLine.slice(4).replace(/\*\*/g, '')}
             </h3>
           );
-        if (line.startsWith("## "))
+        if (cleanLine.startsWith("## "))
           return (
             <h2
               key={i}
@@ -113,22 +125,22 @@ function RenderMarkdown({ text }) {
                 paddingBottom: "0.35rem",
               }}
             >
-              {line.slice(3)}
+              {cleanLine.slice(3).replace(/\*\*/g, '')}
             </h2>
           );
-        if (line.startsWith("# "))
+        if (cleanLine.startsWith("# "))
           return (
             <h1
               key={i}
               style={{
                 fontSize: "1.65rem",
                 fontWeight: 800,
-                color: C.accent,
+                color: "#ffffff",
                 margin: "1.6rem 0 0.55rem",
                 fontFamily: "'Oswald', sans-serif",
               }}
             >
-              {line.slice(2)}
+              {cleanLine.slice(2).replace(/\*\*/g, '')}
             </h1>
           );
         if (line.startsWith("---"))
@@ -156,11 +168,11 @@ function RenderMarkdown({ text }) {
           >
             {parts.map((part, j) =>
               part.startsWith("**") && part.endsWith("**") ? (
-                <strong key={j} style={{ color: C.textBright, fontWeight: 700 }}>
+                <strong key={j} style={{ color: "#ffffff", fontWeight: 700 }}>
                   {part.slice(2, -2)}
                 </strong>
               ) : (
-                <span key={j}>{part}</span>
+                <span key={j}>{part.replace(/\*/g, '')}</span>
               )
             )}
           </p>
@@ -281,7 +293,7 @@ export default function FFLOfferGenerator() {
           style={{
             fontFamily: "'Oswald', sans-serif",
             fontSize: "clamp(2rem, 4.5vw, 3rem)",
-            color: C.accent,
+            color: "#ffffff",
             letterSpacing: "0.03em",
             margin: "0.45rem 0 0.2rem",
             lineHeight: 1.05,
