@@ -1,0 +1,22 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: #0b0b0d;
+  font-family: "DM Sans", sans-serif;
+  color: #d0d0d0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+input::placeholder {
+  color: #3e3e46;
+}
