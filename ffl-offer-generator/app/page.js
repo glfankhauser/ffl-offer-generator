@@ -58,6 +58,57 @@ const AUDIENCES = [
   },
 ];
 
+const OFFER_FRAMEWORKS = [
+  {
+    id: "free_checklist",
+    label: "Free Checklist",
+    value: "Free checklist / PDF download",
+    cta: "Download now, grab your free copy, get instant access",
+  },
+  {
+    id: "free_training",
+    label: "Free Training / Webinar",
+    value: "Free training video or live webinar",
+    cta: "Register now, save your seat, watch the free training",
+  },
+  {
+    id: "quiz",
+    label: "Quiz / Assessment",
+    value: "Interactive quiz or self-assessment diagnostic",
+    cta: "Take the free quiz, get your score, find out where you stand",
+  },
+  {
+    id: "cheat_sheet",
+    label: "Cheat Sheet / Blueprint",
+    value: "Cheat sheet, blueprint, or playbook download",
+    cta: "Download the blueprint, grab the playbook, get the cheat sheet",
+  },
+  {
+    id: "case_study",
+    label: "Case Study",
+    value: "Case study or success story breakdown",
+    cta: "Read the full case study, see how they did it, get the breakdown",
+  },
+  {
+    id: "video_series",
+    label: "Free Video Series",
+    value: "Multi-part free video series or mini-course",
+    cta: "Start watching, get free access, enroll in the free series",
+  },
+  {
+    id: "strategy_call",
+    label: "Strategy Call",
+    value: "Free strategy call or consultation",
+    cta: "Book your free call, claim your spot, schedule now",
+  },
+  {
+    id: "custom_offer",
+    label: "✏️ Custom Offer",
+    value: "",
+    cta: "",
+  },
+];
+
 const C = {
   accent: "#00baff",
   accentDim: "rgba(0,186,255,0.12)",
@@ -76,10 +127,12 @@ const C = {
 };
 
 function buildPrompt(inputs) {
-  const { audience, audiencePreset, offer, topic, number, tone, offerType } = inputs;
+  const { audience, audiencePreset, offer, offerPreset, topic, number, tone, offerType } = inputs;
   const toneLabel = TONES.find((t) => t.id === tone)?.label || tone;
   const preset = AUDIENCES.find((a) => a.id === audiencePreset);
   const painContext = preset && preset.pain ? "\n- Key Pain Points: " + preset.pain : "";
+  const offerFw = OFFER_FRAMEWORKS.find((o) => o.id === offerPreset);
+  const ctaContext = offerFw && offerFw.cta ? "\n- CTA Style: " + offerFw.cta : "";
 
   let typeInst = "";
   switch (offerType) {
@@ -121,6 +174,7 @@ function buildPrompt(inputs) {
     "\n- Tone: " +
     toneLabel +
     painContext +
+    ctaContext +
     "\n\n" +
     typeInst
   );
@@ -228,7 +282,8 @@ export default function FFLOfferGenerator() {
   const [inputs, setInputs] = useState({
     audience: "Brick-and-mortar FFL dealers running a physical gun store",
     audiencePreset: "bm_dealer",
-    offer: "",
+    offer: "Free checklist / PDF download",
+    offerPreset: "free_checklist",
     topic: "",
     number: "",
     tone: "curiosity",
@@ -243,8 +298,12 @@ export default function FFLOfferGenerator() {
   const update = (k, v) => setInputs((p) => ({ ...p, [k]: v }));
 
   const generate = async () => {
-    if (!inputs.offer || !inputs.topic) {
-      setError("Fill in at least the Offer and Topic fields.");
+    if (!inputs.topic) {
+      setError("Fill in at least the Topic field.");
+      return;
+    }
+    if (!inputs.offer) {
+      setError("Select an offer type or enter a custom offer.");
       return;
     }
     setError("");
@@ -289,7 +348,6 @@ export default function FFLOfferGenerator() {
   };
 
   const fields = [
-    { key: "offer", label: "Your Offer / Lead Magnet *", ph: "e.g. Free checklist, Revenue diagnostic, Free training" },
     { key: "topic", label: "Topic / Core Hook *", ph: "e.g. Getting to top of Google, Doubling walk-in traffic" },
     { key: "number", label: "Number / Specificity", ph: "e.g. 5 hacks, 3 mistakes (optional)" },
   ];
@@ -493,6 +551,81 @@ export default function FFLOfferGenerator() {
                   value={inputs.audience}
                   onChange={(e) => update("audience", e.target.value)}
                   placeholder="Describe your target audience..."
+                  style={{
+                    width: "100%",
+                    padding: "0.8rem 1rem",
+                    background: C.inputBg,
+                    border: `1px solid ${C.inputBorder}`,
+                    borderRadius: 9,
+                    color: C.textBright,
+                    fontSize: "0.95rem",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Offer Framework */}
+            <div style={{ marginBottom: "1.1rem" }}>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  color: C.textMuted,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  marginBottom: "0.4rem",
+                }}
+              >
+                Offer Type / Lead Magnet *
+              </div>
+              <select
+                value={inputs.offerPreset}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  const fw = OFFER_FRAMEWORKS.find((o) => o.id === id);
+                  update("offerPreset", id);
+                  if (id !== "custom_offer") {
+                    update("offer", fw?.value || "");
+                  } else {
+                    update("offer", "");
+                  }
+                }}
+                style={{
+                  width: "100%",
+                  padding: "0.8rem 1rem",
+                  background: C.inputBg,
+                  border: `1px solid ${C.inputBorder}`,
+                  borderRadius: 9,
+                  color: C.textBright,
+                  fontSize: "0.95rem",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "'DM Sans', sans-serif",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a6a72' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 1rem center",
+                  cursor: "pointer",
+                }}
+              >
+                {OFFER_FRAMEWORKS.map((o) => (
+                  <option key={o.id} value={o.id} style={{ background: "#1a1a1e", color: "#eaeaea" }}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {inputs.offerPreset === "custom_offer" && (
+              <div style={{ marginBottom: "1.1rem" }}>
+                <input
+                  type="text"
+                  value={inputs.offer}
+                  onChange={(e) => update("offer", e.target.value)}
+                  placeholder="Describe your offer or lead magnet..."
                   style={{
                     width: "100%",
                     padding: "0.8rem 1rem",
