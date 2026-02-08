@@ -435,83 +435,59 @@ export default function FFLOfferGenerator() {
             </div>
 
             {/* Audience Presets */}
-            <div
-              style={{
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                color: C.textMuted,
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                marginBottom: "0.55rem",
-              }}
-            >
-              Who are you targeting?
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))",
-                gap: "0.45rem",
-                marginBottom: "0.75rem",
-              }}
-            >
-              {AUDIENCES.map((a) => (
-                <button
-                  key={a.id}
-                  onClick={() => {
-                    update("audiencePreset", a.id);
-                    if (a.id !== "custom") {
-                      update("audience", a.value);
-                    } else {
-                      update("audience", "");
-                    }
-                  }}
-                  style={{
-                    padding: "0.6rem 0.6rem",
-                    background: inputs.audiencePreset === a.id ? C.accentDim : "rgba(255,255,255,0.015)",
-                    border: `1px solid ${inputs.audiencePreset === a.id ? C.accentBorder : C.panelBorder}`,
-                    borderRadius: 9,
-                    color: inputs.audiencePreset === a.id ? C.accent : C.textMuted,
-                    cursor: "pointer",
-                    fontSize: "0.84rem",
-                    fontWeight: 600,
-                    textAlign: "left",
-                    fontFamily: "'DM Sans', sans-serif",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {a.label}
-                </button>
-              ))}
-            </div>
-            {inputs.audiencePreset !== "custom" && inputs.audiencePreset && (
+            <div style={{ marginBottom: "1.1rem" }}>
               <div
                 style={{
-                  fontSize: "0.8rem",
-                  color: C.textDim,
-                  marginBottom: "1.25rem",
-                  padding: "0.5rem 0.75rem",
-                  background: "rgba(0,186,255,0.04)",
-                  borderRadius: 7,
-                  border: `1px solid rgba(0,186,255,0.08)`,
-                  lineHeight: 1.5,
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  color: C.textMuted,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  marginBottom: "0.4rem",
                 }}
               >
-                <span style={{ color: C.accent, fontWeight: 600 }}>Targeting:</span>{" "}
-                <span style={{ color: C.text }}>{inputs.audience}</span>
-                {AUDIENCES.find((a) => a.id === inputs.audiencePreset)?.pain && (
-                  <>
-                    <br />
-                    <span style={{ color: C.accent, fontWeight: 600 }}>Pain points:</span>{" "}
-                    <span style={{ color: C.text }}>
-                      {AUDIENCES.find((a) => a.id === inputs.audiencePreset).pain}
-                    </span>
-                  </>
-                )}
+                Who are you targeting?
               </div>
-            )}
+              <select
+                value={inputs.audiencePreset}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  const preset = AUDIENCES.find((a) => a.id === id);
+                  update("audiencePreset", id);
+                  if (id !== "custom") {
+                    update("audience", preset?.value || "");
+                  } else {
+                    update("audience", "");
+                  }
+                }}
+                style={{
+                  width: "100%",
+                  padding: "0.8rem 1rem",
+                  background: C.inputBg,
+                  border: `1px solid ${C.inputBorder}`,
+                  borderRadius: 9,
+                  color: C.textBright,
+                  fontSize: "0.95rem",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "'DM Sans', sans-serif",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a6a72' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 1rem center",
+                  cursor: "pointer",
+                }}
+              >
+                {AUDIENCES.map((a) => (
+                  <option key={a.id} value={a.id} style={{ background: "#1a1a1e", color: "#eaeaea" }}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             {inputs.audiencePreset === "custom" && (
-              <div style={{ marginBottom: "1.25rem" }}>
+              <div style={{ marginBottom: "1.1rem" }}>
                 <input
                   type="text"
                   value={inputs.audience}
