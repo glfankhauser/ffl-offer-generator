@@ -163,7 +163,7 @@ function buildPrompt(inputs) {
   }
 
   return (
-    "You are a world-class direct response copywriter for the firearms retail industry (brick-and-mortar FFL dealers / gun store owners). Style: Dan Kennedy, Gary Halbert, Frank Kern. Punchy, benefit-driven, curiosity-inducing. Use AIDA, PAS frameworks. Power words: Free, Proven, Little-Known, Underground, Blueprint, Playbook. Direct no-BS tone. Address them as peers. Use markdown formatting.\n\nCRITICAL FORMATTING RULE: NEVER use em dashes or en dashes in your output. No instances of the characters -- or the unicode em dash or en dash. Use commas, periods, colons, or ellipses instead. Use markdown headers (# and ##) for section titles instead of wrapping text in asterisks. Keep formatting clean and minimal.\n\nOFFER PARAMETERS:\n- Audience: " +
+    "Generate offer copy using the parameters below. Use markdown headers (# and ##) for section titles. Keep formatting clean.\n\nOFFER PARAMETERS:\n- Audience: " +
     audience +
     "\n- Offer: " +
     offer +
