@@ -347,6 +347,49 @@ export default function FFLOfferGenerator() {
     setTimeout(() => setCopyLabel("📋 Copy All"), 2500);
   };
 
+  const [iterating, setIterating] = useState(false);
+  const [iterateLabel, setIterateLabel] = useState("");
+
+  const ITERATIONS = [
+    { label: "🔥 More Urgent", instruction: "Rewrite the copy above to be significantly more urgent and scarce. Add time pressure, limited availability, and fear of missing out. Keep the same structure and offer details." },
+    { label: "✂️ Shorter", instruction: "Rewrite the copy above to be 40-50% shorter. Cut the fluff. Keep only the hardest-hitting lines. Same message, fewer words." },
+    { label: "🔄 Different Angle", instruction: "Rewrite the copy above from a completely different angle. New hook, new framing, new emotional trigger. Same offer and audience, but approach it from a fresh direction." },
+    { label: "🔢 More Specific", instruction: "Rewrite the copy above with more specific numbers, data points, timeframes, and concrete details. Replace vague claims with sharp specifics." },
+    { label: "🗣️ More Conversational", instruction: "Rewrite the copy above to sound more like a real conversation between two dealers. Less polished, more raw. Like texting a buddy who owns a shop." },
+    { label: "⚡ Regenerate", instruction: "Generate a completely new version of the same type of copy for the same offer and audience. Don't reference the previous version. Start fresh with new hooks and angles." },
+  ];
+
+  const iterate = async (instruction) => {
+    setIterating(true);
+    setIterateLabel(instruction.split(" ").slice(0, 3).join(" ") + "...");
+    setError("");
+
+    try {
+      const iteratePrompt = "Here is the copy I previously generated:\n\n---\n" + output + "\n---\n\nNow do the following: " + instruction;
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: iteratePrompt }),
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
+      if (data.text) {
+        setOutput(data.text);
+      }
+    } catch (err) {
+      setError("Iteration failed: " + err.toString());
+    } finally {
+      setIterating(false);
+      setIterateLabel("");
+    }
+  };
+
   const fields = [
     { key: "topic", label: "Topic / Core Hook *", ph: "e.g. Getting to top of Google, Doubling walk-in traffic" },
     { key: "number", label: "Number / Specificity", ph: "e.g. 5 hacks, 3 mistakes (optional)" },
@@ -822,7 +865,7 @@ export default function FFLOfferGenerator() {
               </div>
             )}
 
-            {loading && !output && (
+            {loading && !output && !iterating && (
               <div
                 style={{
                   display: "flex",
@@ -867,6 +910,85 @@ export default function FFLOfferGenerator() {
             )}
 
             {output && <RenderMarkdown text={output} />}
+
+            {/* Iteration Mode */}
+            {output && !iterating && (
+              <div style={{ marginTop: "1.5rem", borderTop: `1px solid ${C.panelBorder}`, paddingTop: "1.25rem" }}>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    color: C.textMuted,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    marginBottom: "0.6rem",
+                  }}
+                >
+                  Refine this copy
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                  {ITERATIONS.map((it) => (
+                    <button
+                      key={it.label}
+                      onClick={() => iterate(it.instruction)}
+                      style={{
+                        padding: "0.5rem 0.85rem",
+                        background: "rgba(255,255,255,0.03)",
+                        border: `1px solid ${C.inputBorder}`,
+                        borderRadius: 8,
+                        color: C.text,
+                        fontSize: "0.82rem",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        fontFamily: "'DM Sans', sans-serif",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = C.accentDim;
+                        e.target.style.borderColor = C.accentBorder;
+                        e.target.style.color = C.accent;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "rgba(255,255,255,0.03)";
+                        e.target.style.borderColor = C.inputBorder;
+                        e.target.style.color = C.text;
+                      }}
+                    >
+                      {it.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Iterating spinner */}
+            {iterating && (
+              <div
+                style={{
+                  marginTop: "1.5rem",
+                  borderTop: `1px solid ${C.panelBorder}`,
+                  paddingTop: "1.25rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.7rem",
+                }}
+              >
+                <div
+                  style={{
+                    width: 22,
+                    height: 22,
+                    border: `2px solid ${C.accentDim}`,
+                    borderTopColor: C.accent,
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite",
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ color: C.textMuted, fontSize: "0.88rem" }}>
+                  Refining: {iterateLabel}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>
