@@ -39,6 +39,21 @@ const OFFER_FRAMEWORKS = [
   { id: "custom_offer", label: "✏️ Custom Offer", value: "", cta: "" },
 ];
 
+const OBJECTIONS = [
+  { id: "no_fb_ads", label: "Can't run FB/IG ads (platform restrictions)" },
+  { id: "losing_online", label: "Losing sales to online retailers" },
+  { id: "atf_compliance", label: "ATF compliance eating all my time" },
+  { id: "no_marketing_budget", label: "No budget for marketing" },
+  { id: "no_foot_traffic", label: "No foot traffic / slow walk-ins" },
+  { id: "staff_wont_follow", label: "Staff won't follow the process" },
+  { id: "price_shoppers", label: "Customers only buy on price" },
+  { id: "no_online_presence", label: "No online presence / invisible on Google" },
+  { id: "wearing_every_hat", label: "Owner doing everything / can't step away" },
+  { id: "tried_before", label: "Tried marketing before and it didn't work" },
+  { id: "thin_margins", label: "Margins are too thin to invest" },
+  { id: "no_repeat_buyers", label: "Customers buy once and never come back" },
+];
+
 const REFINE_OPTIONS = [
   { value: "", label: "Refine..." },
   { value: "urgent", label: "🔥 More Urgent" },
@@ -80,12 +95,14 @@ const selectStyle = { width: "100%", padding: "0.8rem 1rem", background: C.input
 const inputStyle = { width: "100%", padding: "0.8rem 1rem", background: C.inputBg, border: `1px solid ${C.inputBorder}`, borderRadius: 9, color: C.textBright, fontSize: "0.95rem", outline: "none", boxSizing: "border-box", fontFamily: "'DM Sans', sans-serif" };
 
 function buildPrompt(inputs) {
-  const { audience, audiencePreset, offer, offerPreset, topic, number, tone, offerType } = inputs;
+  const { audience, audiencePreset, offer, offerPreset, topic, number, tone, offerType, objections } = inputs;
   const toneLabel = TONES.find((t) => t.id === tone)?.label || tone;
   const preset = AUDIENCES.find((a) => a.id === audiencePreset);
   const painContext = preset && preset.pain ? "\n- Key Pain Points: " + preset.pain : "";
   const offerFw = OFFER_FRAMEWORKS.find((o) => o.id === offerPreset);
   const ctaContext = offerFw && offerFw.cta ? "\n- CTA Style: " + offerFw.cta : "";
+  const objLabels = objections.map((id) => OBJECTIONS.find((o) => o.id === id)?.label).filter(Boolean);
+  const objContext = objLabels.length > 0 ? "\n- Specific Objections to Address: " + objLabels.join("; ") : "";
 
   let typeInst = "";
   switch (offerType) {
@@ -113,7 +130,7 @@ function buildPrompt(inputs) {
     "Generate offer copy using the parameters below. Use ## markdown headers for each distinct piece of copy or numbered item so they are clearly separated as individual sections. Keep formatting clean.\n\nOFFER PARAMETERS:\n- Audience: " +
     audience + "\n- Offer: " + offer + "\n- Topic/Hook: " + topic +
     "\n- Specificity: " + (number || "Your best judgment") +
-    "\n- Tone: " + toneLabel + painContext + ctaContext + "\n\n" + typeInst
+    "\n- Tone: " + toneLabel + painContext + ctaContext + objContext + "\n\n" + typeInst
   );
 }
 
@@ -195,7 +212,7 @@ function SectionCard({ raw, index, onRefineSection, isRefining }) {
 }
 
 export default function FFLOfferGenerator() {
-  const [inputs, setInputs] = useState({ audience: "Brick-and-mortar FFL dealers running a physical gun store", audiencePreset: "bm_dealer", offer: "Free checklist / PDF download", offerPreset: "free_checklist", topic: "", number: "", tone: "curiosity", offerType: "headlines" });
+  const [inputs, setInputs] = useState({ audience: "Brick-and-mortar FFL dealers running a physical gun store", audiencePreset: "bm_dealer", offer: "Free checklist / PDF download", offerPreset: "free_checklist", topic: "", number: "", tone: "curiosity", offerType: "headlines", objections: [] });
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -306,6 +323,67 @@ export default function FFLOfferGenerator() {
                 <input type="text" value={inputs[f.key]} onChange={(e) => update(f.key, e.target.value)} placeholder={f.ph} style={inputStyle} />
               </div>
             ))}
+
+            {/* Objection Injector */}
+            <div style={{ marginBottom: "1.1rem" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "0.4rem" }}>
+                Objections to Address <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span>
+              </div>
+              <div
+                style={{
+                  background: C.inputBg,
+                  border: `1px solid ${C.inputBorder}`,
+                  borderRadius: 9,
+                  maxHeight: 180,
+                  overflowY: "auto",
+                  padding: "0.4rem 0",
+                }}
+              >
+                {OBJECTIONS.map((obj) => {
+                  const checked = inputs.objections.includes(obj.id);
+                  return (
+                    <label
+                      key={obj.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.6rem",
+                        padding: "0.45rem 0.85rem",
+                        cursor: "pointer",
+                        fontSize: "0.88rem",
+                        color: checked ? C.textBright : C.textMuted,
+                        transition: "all 0.1s",
+                        background: checked ? "rgba(0,186,255,0.05)" : "transparent",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          const next = checked
+                            ? inputs.objections.filter((id) => id !== obj.id)
+                            : [...inputs.objections, obj.id];
+                          update("objections", next);
+                        }}
+                        style={{ accentColor: C.accent, width: 16, height: 16, cursor: "pointer" }}
+                      />
+                      {obj.label}
+                    </label>
+                  );
+                })}
+              </div>
+              {inputs.objections.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.35rem" }}>
+                  <span style={{ fontSize: "0.72rem", color: C.accent }}>{inputs.objections.length} selected</span>
+                  <button
+                    onClick={() => update("objections", [])}
+                    style={{ fontSize: "0.72rem", color: C.textDim, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", textDecoration: "underline" }}
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
+            </div>
 
             <div style={{ fontSize: "0.72rem", fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>Tone</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1.5rem" }}>
