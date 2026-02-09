@@ -103,6 +103,7 @@ function buildPrompt(inputs) {
   const ctaContext = offerFw && offerFw.cta ? "\n- CTA Style: " + offerFw.cta : "";
   const objLabels = objections.map((id) => OBJECTIONS.find((o) => o.id === id)?.label).filter(Boolean);
   const objContext = objLabels.length > 0 ? "\n- Specific Objections to Address: " + objLabels.join("; ") : "";
+  const customContext = inputs.customPrompt.trim() ? "\n- Additional Instructions: " + inputs.customPrompt.trim() : "";
 
   let typeInst = "";
   switch (offerType) {
@@ -130,7 +131,7 @@ function buildPrompt(inputs) {
     "Generate offer copy using the parameters below. Use ## markdown headers for each distinct piece of copy or numbered item so they are clearly separated as individual sections. Keep formatting clean.\n\nOFFER PARAMETERS:\n- Audience: " +
     audience + "\n- Offer: " + offer + "\n- Topic/Hook: " + topic +
     "\n- Specificity: " + (number || "Your best judgment") +
-    "\n- Tone: " + toneLabel + painContext + ctaContext + objContext + "\n\n" + typeInst
+    "\n- Tone: " + toneLabel + painContext + ctaContext + objContext + customContext + "\n\n" + typeInst
   );
 }
 
@@ -212,7 +213,7 @@ function SectionCard({ raw, index, onRefineSection, isRefining }) {
 }
 
 export default function FFLOfferGenerator() {
-  const [inputs, setInputs] = useState({ audience: "Brick-and-mortar FFL dealers running a physical gun store", audiencePreset: "bm_dealer", offer: "Free checklist / PDF download", offerPreset: "free_checklist", topic: "", number: "", tone: "curiosity", offerType: "headlines", objections: [] });
+  const [inputs, setInputs] = useState({ audience: "Brick-and-mortar FFL dealers running a physical gun store", audiencePreset: "bm_dealer", offer: "Free checklist / PDF download", offerPreset: "free_checklist", topic: "", number: "", tone: "curiosity", offerType: "headlines", objections: [], customPrompt: "" });
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -390,6 +391,25 @@ export default function FFLOfferGenerator() {
               {TONES.map((t) => (
                 <button key={t.id} onClick={() => update("tone", t.id)} style={{ padding: "0.48rem 0.85rem", background: inputs.tone === t.id ? C.accentDim : "transparent", border: `1px solid ${inputs.tone === t.id ? C.accentBorder : C.inputBorder}`, borderRadius: 20, color: inputs.tone === t.id ? C.accent : C.textDim, cursor: "pointer", fontSize: "0.85rem", fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{t.label}</button>
               ))}
+            </div>
+
+            {/* Custom Prompt */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "0.4rem" }}>
+                Additional Instructions <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span>
+              </div>
+              <textarea
+                value={inputs.customPrompt}
+                onChange={(e) => update("customPrompt", e.target.value)}
+                placeholder="e.g. Mention the upcoming gun show, reference tax season, tie into Black Friday..."
+                rows={2}
+                style={{
+                  ...inputStyle,
+                  resize: "vertical",
+                  minHeight: 52,
+                  lineHeight: 1.5,
+                }}
+              />
             </div>
 
             {error && <div style={{ background: "rgba(200,50,50,0.1)", border: "1px solid rgba(200,50,50,0.25)", borderRadius: 9, padding: "0.65rem 1rem", color: "#e07070", fontSize: "0.9rem", marginBottom: "1rem", wordBreak: "break-word" }}>{error}</div>}
