@@ -6,6 +6,7 @@ const TYPES = [
   { id: "headlines", label: "Headlines & Hooks", icon: "🎯" },
   { id: "facebook_ad", label: "Facebook Ad", icon: "📱" },
   { id: "facebook_post", label: "Facebook Post", icon: "📣" },
+  { id: "single_email", label: "Single Email", icon: "📨" },
   { id: "email", label: "Email Sequence", icon: "✉️" },
   { id: "landing_page", label: "Landing Page", icon: "🖥️" },
   { id: "full_suite", label: "Full Suite", icon: "⚡" },
@@ -115,6 +116,9 @@ function buildPrompt(inputs) {
       break;
     case "facebook_post":
       typeInst = "Generate 5 organic Facebook post variations designed to drive engagement and leads. Use a ## heading for each post. For EACH post:\n- Opening hook (pattern interrupt first line)\n- Body copy (conversational, value-driven, 3-8 sentences)\n- Call to action (comment, DM, or link click)\n- Suggested post type (text only, image suggestion, or video idea)\n\nMix up the formats: include a story-based post, a question post, a controversial/hot take post, a value bomb/tips post, and a social proof/results post. Write them as ready-to-copy-paste posts, not as ads.";
+      break;
+    case "single_email":
+      typeInst = "Generate 3 variations of a single standalone broadcast email to a warm list. These people already know the brand. This is NOT a cold email or part of a sequence. It's a one-off blast promoting the offer. Use a ## heading for each variation. For EACH variation:\n- 3 subject line options (short, punchy, curiosity-driven)\n- Preview text (the snippet that shows in inbox)\n- Email body (conversational, direct, 4-8 paragraphs, builds desire and drives to CTA)\n- Clear CTA (one primary action)\n- P.S. line (reinforce urgency or add a bonus hook)\n\nEach variation should take a different angle: one urgency-based, one story-based, one value/education-based.";
       break;
     case "email":
       typeInst = "Generate a 3-email nurture sequence. Use a ## heading for each email:\nEmail 1 (send immediately): 3 subject lines, preview text, body, CTA\nEmail 2 (day 2): 3 subject lines, preview text, body, CTA\nEmail 3 (day 3-4): 3 subject lines, preview text, body, CTA";
